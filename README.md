@@ -13,7 +13,7 @@ Feldkamp e poi rimuove gli artefatti con una rete di post processing
 
 ## Descrizione del progetto:
 
-1. Estendere il data set sintetico 2D denominato Coule e scaricabile dal seguente (link)[https://www.kaggle.com/datasets/loiboresearchgroup/coule-dataset] al 3D, con volumi di dimensione 256x256x50 (circa 25-30 volumi)
+1. Estendere il data set sintetico 2D denominato Coule e scaricabile dal seguente [link](https://www.kaggle.com/datasets/loiboresearchgroup/coule-dataset) al 3D, con volumi di dimensione 256x256x50 (circa 25-30 volumi)
 2. Utilizzare il codice fornito basato su ASTRA che ricostruisce il volume a partire da proiezioni sintetiche ottenute in geometria ad angoli limitati caratteristica delle tomosintesi mammaria.
 3. Implementare una rete di tipo REsUnet 3D che prende in input la ricostruzione ottenuta al punto 2 e ha come target i volumi del dataset. La rete prende in input un sottoinsieme di Nf fette alla volta (testare un valore di Np compatibile con le risorse disponibili).
 
