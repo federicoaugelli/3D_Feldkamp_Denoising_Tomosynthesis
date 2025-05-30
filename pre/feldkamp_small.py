@@ -166,77 +166,77 @@ VISUALIZZAZI0NE DEL VOLUME SIMULATO PER ALCUNE SLICES
 path="images"   #Percorso dove salviamo le immagini
 save_phantom=0
 
-# slices=[20, 105, 180, 245]
-# fig=plt.figure(figsize=(20,5))
-# for i in range (len(slices)):
-#   plt.subplot(1,4,i+1)
-#   plt.imshow(phantom[slices[i], :, :], cmap='gray', vmin=0, vmax=1)
-#   plt.title(f'Slice {slices[i]}')
-# plt.show()
+slices=[20, 105, 180, 245]
+fig=plt.figure(figsize=(20,5))
+for i in range (len(slices)):
+  plt.subplot(1,4,i+1)
+  plt.imshow(phantom[slices[i], :, :], cmap='gray', vmin=0, vmax=1)
+  plt.title(f'Slice {slices[i]}')
+plt.show()
 print('ciao')
 
-# if save_phantom==1:
-#     output_file_phantom=os.path.join(path, "phantom.tiff")
-#     tifffile.imwrite(output_file_phantom, phantom)
-# """
-# VISUALIZZAZIONE DETECTOR E VETTORI u, v
-# """
+if save_phantom==1:
+    output_file_phantom=os.path.join(path, "phantom.tiff")
+    tifffile.imwrite(output_file_phantom, phantom)
+"""
+VISUALIZZAZIONE DETECTOR E VETTORI u, v
+"""
 
-# # Posizioni e dimensioni del detector
-# det_center = np.array([0, 0, det_in_pos[2]-(vol_dim[2]/2+obj_in_pos[2])])                                   # Centro del detector
-# u_vector = (np.array([detector_pixel_size, 0, 0])/detector_pixel_size)*15                                 # Vettore u (orizzontale)
-# v_vector = (np.array([0, detector_pixel_size, 0])/detector_pixel_size)*15                                 # Vettore v (verticale)
+# Posizioni e dimensioni del detector
+det_center = np.array([0, 0, det_in_pos[2]-(vol_dim[2]/2+obj_in_pos[2])])                                   # Centro del detector
+u_vector = (np.array([detector_pixel_size, 0, 0])/detector_pixel_size)*15                                 # Vettore u (orizzontale)
+v_vector = (np.array([0, detector_pixel_size, 0])/detector_pixel_size)*15                                 # Vettore v (verticale)
 
-# # Definisci i 4 vertici del detector (rettangolo)                                 
-# #ottengo i vertici come somma di vettori e le colonne sono maggiori delle righe 
-# corner1 = det_center - u_vector * detector_cols / 2 - v_vector * detector_rows / 2
-# corner2 = det_center + u_vector * detector_cols / 2 - v_vector * detector_rows / 2
-# corner3 = det_center + u_vector * detector_cols / 2 + v_vector * detector_rows / 2
-# corner4 = det_center - u_vector * detector_cols / 2 + v_vector * detector_rows / 2
+# Definisci i 4 vertici del detector (rettangolo)                                 
+#ottengo i vertici come somma di vettori e le colonne sono maggiori delle righe 
+corner1 = det_center - u_vector * detector_cols / 2 - v_vector * detector_rows / 2
+corner2 = det_center + u_vector * detector_cols / 2 - v_vector * detector_rows / 2
+corner3 = det_center + u_vector * detector_cols / 2 + v_vector * detector_rows / 2
+corner4 = det_center - u_vector * detector_cols / 2 + v_vector * detector_rows / 2
 
-# # Lista dei vertici per disegnare il detector
-# vertices = np.array([corner1, corner2, corner3, corner4, corner1])/100
-
-
-# # Crea il grafico 3D
-# fig = plt.figure(figsize=(10, 10))
-# ax = fig.add_subplot(111, projection='3d')
-
-# # Disegna il detector
-# ax.plot(vertices[:, 0], vertices[:, 1], vertices[:, 2], label='Detector', color='blue')
-
-# # Disegna il vettore u
-# ax.quiver(det_center[0], det_center[1], det_center[2], 
-#           10 * u_vector[0],  u_vector[1], 10 * u_vector[2], color='r', length=0.1, label='versore u')
-
-# # Disegna il vettore v
-# ax.quiver(det_center[0], det_center[1], det_center[2], 
-#           10 * v_vector[0], 10 * v_vector[1], 10 * v_vector[2], color='g', length=0.1, label='versore v')
+# Lista dei vertici per disegnare il detector
+vertices = np.array([corner1, corner2, corner3, corner4, corner1])/100
 
 
-# ax.set_xlim([-250, 250])
-# ax.set_ylim([-200, 200])
-# ax.set_zlim([-2000, 2000])
+# Crea il grafico 3D
+fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(111, projection='3d')
 
-# ax.scatter(det_center[0], det_center[1], det_center[2], s=75, label='Centro del detector', color='blue')
+# Disegna il detector
+ax.plot(vertices[:, 0], vertices[:, 1], vertices[:, 2], label='Detector', color='blue')
 
-# # Configura il grafico
-# ax.set_xlabel('X (mm)')
-# ax.set_ylabel('Y (mm)')
-# ax.set_zlabel('Z (mm)')
-# ax.legend()
-# plt.title("Vista dall'alto del detector")
+# Disegna il vettore u
+ax.quiver(det_center[0], det_center[1], det_center[2], 
+          10 * u_vector[0],  u_vector[1], 10 * u_vector[2], color='r', length=0.1, label='versore u')
 
-# # Imposta vista dall'alto
-# ax.view_init(elev=90, azim=0)
+# Disegna il vettore v
+ax.quiver(det_center[0], det_center[1], det_center[2], 
+          10 * v_vector[0], 10 * v_vector[1], 10 * v_vector[2], color='g', length=0.1, label='versore v')
 
-# plt.show()
 
-# """
-# VISUALIZZAZIONE POSIZIONE DELLE SORGENTI
-# """
+ax.set_xlim([-250, 250])
+ax.set_ylim([-200, 200])
+ax.set_zlim([-2000, 2000])
 
-# # Calcolo delle posizioni della sorgente
+ax.scatter(det_center[0], det_center[1], det_center[2], s=75, label='Centro del detector', color='blue')
+
+# Configura il grafico
+ax.set_xlabel('X (mm)')
+ax.set_ylabel('Y (mm)')
+ax.set_zlabel('Z (mm)')
+ax.legend()
+plt.title("Vista dall'alto del detector")
+
+# Imposta vista dall'alto
+ax.view_init(elev=90, azim=0)
+
+plt.show()
+
+"""
+VISUALIZZAZIONE POSIZIONE DELLE SORGENTI
+"""
+
+# Calcolo delle posizioni della sorgente
 # rad_angles = angles * (np.pi / 180)  # Angoli in radianti
 # pos_sorgente = np.zeros((len(angles), 3))  
 # pos_sorgente[:, 0] = SAD * np.sin(rad_angles)                            # Coordinate X della sorgente

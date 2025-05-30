@@ -168,9 +168,9 @@ def get_data(input_shape=(30, 512, 512, 32)):
     ell_centers = list()
 
     for i in range(N):
-        N_ell = random.randint(1, 5) + 15  # Number of ellipses in each image.
-        N_circle = random.randint(1, 5) + 15  # Number of circles of opacity 0.9.
-        N_lines = random.randint(1, 5) + 5  # Number of lines of opacity 0.9
+        N_ell = random.randint(1, 5) + 8  # Number of ellipses in each image.
+        N_circle = random.randint(1, 5) + 8  # Number of circles of opacity 0.9.
+        N_lines = random.randint(1, 5) + 4  # Number of lines of opacity 0.9
         N_centered_ellipses = random.randint(1, N_ell)  # Number of centered ellipses in each image.
 
         print('Drawing the ', str(i), '-th Ellipsoid', end='')
@@ -242,8 +242,8 @@ def to_tif(data, PATH='./', type='xy'):
     import tifffile as tif
     for i in range(data.shape[0]):
         if type == 'xy':
-            tif.imsave(PATH + 'ellipsoid_dataset_'+ str(i) + '_xy.tif', np.transpose(data[i], (2, 0, 1)))
+            tif.imwrite(PATH + 'ellipsoid_dataset_'+ str(i) + '_xy.tif', np.transpose(data[i], (2, 0, 1)))
         elif type == 'yt':
-            tif.imsave(PATH + 'ellipsoid_dataset_' + str(i) + '_yt.tif', data[i])
+            tif.imwrite(PATH + 'ellipsoid_dataset_' + str(i) + '_yt.tif', data[i])
         elif type == 'xt':
-            tif.imsave(PATH + 'ellipsoid_dataset_'+ str(i) + '_xt.tif', np.transpose(data[i], (1, 0, 2)))
+            tif.imwrite(PATH + 'ellipsoid_dataset_'+ str(i) + '_xt.tif', np.transpose(data[i], (1, 0, 2)))
