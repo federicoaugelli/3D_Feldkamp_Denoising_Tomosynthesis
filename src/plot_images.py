@@ -24,3 +24,13 @@ def plot_n_images(images, title=None, n=3, cmap='gray'):
     if title:
         plt.suptitle(title)
     plt.show()
+
+# plot ndarray image of dimension (N, H, W, D)
+def plot_volumes(image):
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, image.shape[0], figsize=(15, 5))
+    for i in range(image.shape[0]):
+        axes[i].imshow(image[i, :, :, 10], cmap='gray')
+        axes[i].axis('off')
+    plt.show()

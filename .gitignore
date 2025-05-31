@@ -1,3 +1,5 @@
 test
 .DS_Store
 .env
+src/dataset/data/
+src/dataset/tiff/
