@@ -12,19 +12,19 @@ class Feldkamp:
         self.path = path
         self.fp_alg = 'FP3D_CUDA'
         self.fdk_alg = 'FDK_CUDA'
-        self.SAD = 6460
-        self.SID = 6840
-        self.SOD = 6670
+        self.SAD = 800
+        #self.SID = 1700
+        #self.SOD = 1650
         self.scale = 5
         self.detector_pixel_size = 0.95
-        self.detector_rows = 2000
-        self.detector_cols = 3000
+        self.detector_rows = 500
+        self.detector_cols = 700
         self.detector_x = self.detector_rows*self.detector_pixel_size
         self.detector_y = self.detector_cols*self.detector_pixel_size
         self.angles = np.linspace(-15, 15, 11)
         self.num_projections = len(self.angles)
-        self.obj_in_pos = [-1327.46, 1180, -220]
-        self.det_in_pos = [-1463.70, 1180, -390]
+        self.obj_in_pos = [-663.73, 590, -110]
+        self.det_in_pos = [-731.85, 590, -195]
         self.a = 50
         self.b = 256
         self.c = 256
@@ -116,6 +116,14 @@ class Feldkamp:
             
             # Pulizia
             astra.algorithm.delete(alg1_id)
+
+            # Rappresentiamo alcune proiezioni
+            index = [0, 5, 7, 10]
+            fig = plt.figure(figsize=(20, 5))
+            for i in range(len(index)):
+                plt.subplot(1, 4, i + 1)
+                plt.imshow(proj_volume[:, index[i], :], cmap='gray')
+                plt.title(f'Proiezione angolo {self.angles[index[i]]}°')
             
             return proj_volume
 
@@ -144,7 +152,7 @@ class Feldkamp:
             pbar.update(1)
             
             # Visualizzazione opzionale
-            # self.visualize_slices(reconstruction_FDK)
+            self.visualize_slices(reconstruction_FDK)
             
             # Pulizia
             astra.algorithm.delete(alg2_id)
@@ -156,12 +164,12 @@ class Feldkamp:
         # Funzione separata per visualizzare le slices
         maxvalr = np.max(volume)
         minvalr = np.min(volume)
-        slices = [20, 25, 30, 40]
+        slices = [10, 20, 30, 40]
         
         fig = plt.figure(figsize=(20, 5))
         for i in range(len(slices)):
             plt.subplot(1, 4, i + 1)
-            plt.imshow(volume[slices[i], :, :], cmap='gray', vmin=minvalr, vmax=maxvalr)
+            plt.imshow(volume[slices[i], :, :], cmap='grey', vmin=minvalr, vmax=maxvalr)
             plt.title(f'Ricostruzione slice {slices[i]}')
         plt.tight_layout()
         plt.show()
@@ -201,7 +209,11 @@ class Feldkamp:
                     # Forward projection
                     proj_volume = self.forward_projection(vol_id=vol_id, proj_id=proj_id, noise_level=noise_level)
                     astra.data3d.store(proj_id, proj_volume)
-                    
+
+                    #plt.imshow(np.transpose(proj_volume[0], (0, 2 , 1)), cmap='gray')
+                    #self.visualize_slices(np.transpose(proj_volume, (0, 1, 2)))
+                    #tifffile.imwrite(self.path + str(volume))
+
                     # Ricostruzione FDK
                     reconstruction_FDK = self.feldkamp_reconstruction(proj_id=proj_id, vol_id=vol_id)
                     
