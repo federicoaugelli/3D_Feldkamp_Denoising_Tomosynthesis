@@ -23,8 +23,8 @@ class Feldkamp:
         self.detector_y = self.detector_cols*self.detector_pixel_size
         self.angles = np.linspace(-15, 15, 11)
         self.num_projections = len(self.angles)
-        self.obj_in_pos = [-663.73, 590, -110]
-        self.det_in_pos = [-731.85, 590, -195]
+        self.obj_in_pos = [-128, 128, -25] # 
+        self.det_in_pos = [-256, 128, -25] #
         self.a = 50
         self.b = 256
         self.c = 256
@@ -118,12 +118,12 @@ class Feldkamp:
             astra.algorithm.delete(alg1_id)
 
             # Rappresentiamo alcune proiezioni
-            index = [0, 5, 7, 10]
-            fig = plt.figure(figsize=(20, 5))
-            for i in range(len(index)):
-                plt.subplot(1, 4, i + 1)
-                plt.imshow(proj_volume[:, index[i], :], cmap='gray')
-                plt.title(f'Proiezione angolo {self.angles[index[i]]}°')
+            #index = [0, 5, 7, 10]
+            #fig = plt.figure(figsize=(20, 5))
+            #for i in range(len(index)):
+            #    plt.subplot(1, 4, i + 1)
+            #    plt.imshow(proj_volume[:, index[i], :], cmap='gray')
+            #    plt.title(f'Proiezione angolo {self.angles[index[i]]}°')
             
             return proj_volume
 
@@ -152,7 +152,7 @@ class Feldkamp:
             pbar.update(1)
             
             # Visualizzazione opzionale
-            self.visualize_slices(reconstruction_FDK)
+            #self.visualize_slices(reconstruction_FDK)
             
             # Pulizia
             astra.algorithm.delete(alg2_id)
