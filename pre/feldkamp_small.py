@@ -29,7 +29,7 @@ def geom_set_up(SAD, angles, num_projections, vol_dim, det_in_pos, obj_in_pos,
                 detector_pixel_size, detector_rows, detector_cols, detector_x, detector_y):
 
   #Inizializziamo la matrice vectors
-    vectors=np.ones((num_projections,12))
+    vectors=np.ones((num_projections,12)) #matrice di prima che ha dimensione 11x12
     
   #Coordinate della sorgente al variare degli angoli
     rad_angles=angles*(np.pi/180)                               #angoli in radianti
@@ -68,7 +68,7 @@ def geom_set_up(SAD, angles, num_projections, vol_dim, det_in_pos, obj_in_pos,
   #Creiamo la geometria del volume e della proiezione
     vol_geom=astra.create_vol_geom( vol_dim[1], vol_dim[2], vol_dim[0])  #righe sono le Y, colonne sono le X, Z sono le slices
     #vol_geom=astra.create_vol_geom( vol_dim[2], vol_dim[0], vol_dim[1])
-    proj_geom = astra.create_proj_geom('cone_vec', detector_rows, detector_cols, vectors)
+    proj_geom = astra.create_proj_geom('cone_vec', detector_rows, detector_cols, vectors) #geometria a cono con detector di queste dimensioni e la matrice vector come fatta in precedenza
 
     return [vol_geom, proj_geom]
 
