@@ -65,3 +65,4 @@ post-processing in sparse-view tomographic reconstruction."
 | train 4 | 25.38 | 0.5622 | 10.8865| 13.1988  | 20     | 11m  |
 | train 5 | 5.13  | 0.0488 | 8.2243 | 12.5267  | 50     | 35m  |
 | train 6 | 23    | 0.5    | 9.2875 | 11.5997  | 20     | 11m  |
+| train 7 | BAD   | BAD    | BAD    | BAD      | 20     | 11m  |

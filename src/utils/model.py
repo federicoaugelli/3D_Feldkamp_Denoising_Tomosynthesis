@@ -91,4 +91,3 @@ class ResUnet3D(nn.Module):
         d2 = self.dec2(d2)
 
         return torch.sigmoid(self.out(d2))
-
