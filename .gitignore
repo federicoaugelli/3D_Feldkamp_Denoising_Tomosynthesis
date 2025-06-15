@@ -3,5 +3,7 @@ test
 .env
 src/dataset/data/
 src/dataset/tiff/
+src/dataset/np/
+src/dataset/reconstruction/
 src/feldkamp_tmp.py
 src/reconstructions.npz

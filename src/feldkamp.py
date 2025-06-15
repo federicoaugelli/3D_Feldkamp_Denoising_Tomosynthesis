@@ -8,29 +8,27 @@ import time
 from tqdm import tqdm, trange
 
 class Feldkamp:
-    def __init__(self, path):
+    def __init__(self, path, angles=(-15, 15), num_projections=11):
         self.path = path
         self.fp_alg = 'FP3D_CUDA'
         self.fdk_alg = 'FDK_CUDA'
         self.SAD = 800
-        #self.SID = 1700
-        #self.SOD = 1650
         self.scale = 5
         self.detector_pixel_size = 0.95
         self.detector_rows = 500
         self.detector_cols = 700
         self.detector_x = self.detector_rows*self.detector_pixel_size
         self.detector_y = self.detector_cols*self.detector_pixel_size
-        self.angles = np.linspace(-15, 15, 11)
+        self.angles = np.linspace(angles[0], angles[1], num_projections)
+        #self.angles = np.linspace(-15, 15, 11)
         self.num_projections = len(self.angles)
-        self.obj_in_pos = [-128, 128, -25] # 
-        self.det_in_pos = [-256, 128, -25] #
+        self.obj_in_pos = [-128, 128, -25] 
+        self.det_in_pos = [-256, 128, -25]
         self.a = 50
         self.b = 256
         self.c = 256
         self.vol_dim = np.array([self.a, self.b, self.c])
         
-        # Inizializzazione delle geometrie
         self.vol_geom, self.proj_geom = self.geom_set_up(self.SAD, self.angles, self.num_projections,
                                                         self.vol_dim, self.det_in_pos, self.obj_in_pos,
                                                         self.detector_pixel_size, self.detector_rows,
@@ -82,7 +80,7 @@ class Feldkamp:
         
         return [vol_geom, proj_geom]
 
-    def forward_projection(self, vol_id, proj_id, noise_level=0.00):
+    def forward_projection(self, vol_id, proj_id, noise_level=0.00, visualize=False):
         # Forward projection con barra di progresso
         with tqdm(total=3, desc="Forward Projection", leave=False) as pbar:
             # Inizializzazione parametri FP
@@ -118,16 +116,17 @@ class Feldkamp:
             astra.algorithm.delete(alg1_id)
 
             # Rappresentiamo alcune proiezioni
-            #index = [0, 5, 7, 10]
-            #fig = plt.figure(figsize=(20, 5))
-            #for i in range(len(index)):
-            #    plt.subplot(1, 4, i + 1)
-            #    plt.imshow(proj_volume[:, index[i], :], cmap='gray')
-            #    plt.title(f'Proiezione angolo {self.angles[index[i]]}°')
+            if visualize:
+                index = [0, 5, 7, 10]
+                fig = plt.figure(figsize=(20, 5))
+                for i in range(len(index)):
+                    plt.subplot(1, 4, i + 1)
+                    plt.imshow(proj_volume[:, index[i], :], cmap='gray')
+                    plt.title(f'Proiezione angolo {self.angles[index[i]]}°')
             
             return proj_volume
 
-    def feldkamp_reconstruction(self, proj_id, vol_id):
+    def feldkamp_reconstruction(self, proj_id, vol_id, visualize=False):
         # Ricostruzione FDK con barra di progresso
         with tqdm(total=3, desc="FDK Reconstruction", leave=False) as pbar:
             # Inizializzazione parametri FDK
@@ -152,7 +151,8 @@ class Feldkamp:
             pbar.update(1)
             
             # Visualizzazione opzionale
-            #self.visualize_slices(reconstruction_FDK)
+            if visualize:
+                self.visualize_slices(reconstruction_FDK)
             
             # Pulizia
             astra.algorithm.delete(alg2_id)
@@ -161,7 +161,6 @@ class Feldkamp:
             return reconstruction_FDK
     
     def visualize_slices(self, volume):
-        # Funzione separata per visualizzare le slices
         maxvalr = np.max(volume)
         minvalr = np.min(volume)
         slices = [10, 20, 30, 40]
@@ -175,7 +174,6 @@ class Feldkamp:
         plt.show()
 
     def save_reconstructions(self, filename):
-        # Salvataggio con barra di progresso
         with tqdm(total=1, desc=f"Salvataggio in {filename}", leave=True) as pbar:
             volume_name = [m['volume_name'] for m in self.metadata]
             noise_level = [m['noise_level'] for m in self.metadata]
@@ -188,12 +186,10 @@ class Feldkamp:
                     metadata=self.metadata)
             pbar.update(1)
 
-    def run(self, noise_levels=[0.00, 0.05]):
-        # Preparazione
+    def run(self, noise_levels=[0.00, 0.05], visualize=False):
         volumes_list = [v for v in os.listdir(self.path) if v.endswith('.tif')]
         total_iterations = len(volumes_list) * len(noise_levels)
         
-        # Loop principale con tqdm
         with tqdm(total=total_iterations, desc="Elaborazione volumi", unit="volume") as pbar:
             for volume in volumes_list:
                 # Caricamento phantom
@@ -207,21 +203,18 @@ class Feldkamp:
                     proj_id = astra.data3d.create('-proj3d', self.proj_geom)
                     
                     # Forward projection
-                    proj_volume = self.forward_projection(vol_id=vol_id, proj_id=proj_id, noise_level=noise_level)
+                    proj_volume = self.forward_projection(vol_id=vol_id, proj_id=proj_id, noise_level=noise_level, visualize=visualize)
                     astra.data3d.store(proj_id, proj_volume)
 
-                    #plt.imshow(np.transpose(proj_volume[0], (0, 2 , 1)), cmap='gray')
-                    #self.visualize_slices(np.transpose(proj_volume, (0, 1, 2)))
-                    #tifffile.imwrite(self.path + str(volume))
-
                     # Ricostruzione FDK
-                    reconstruction_FDK = self.feldkamp_reconstruction(proj_id=proj_id, vol_id=vol_id)
+                    reconstruction_FDK = self.feldkamp_reconstruction(proj_id=proj_id, vol_id=vol_id, visualize=visualize)
                     
                     # Salvataggio dei dati
                     self.volumes.append(reconstruction_FDK)
                     self.metadata.append({
                         'volume_name': volume,
                         'noise_level': noise_level,
+                        'angles': self.angles,
                     })
                     
                     # Pulizia memoria
@@ -233,7 +226,7 @@ class Feldkamp:
         
         # Salvataggio dei risultati
         if self.volumes:
-            self.save_reconstructions('reconstructions.npz')
+            self.save_reconstructions('dataset/reconstruction/reconstructions.npz')
             
             # Statistiche finali
             print(f"\nRiepilogo elaborazione:")
