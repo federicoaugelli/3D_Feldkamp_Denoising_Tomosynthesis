@@ -7,3 +7,4 @@ src/dataset/np/
 src/dataset/reconstruction/
 src/feldkamp_tmp.py
 src/reconstructions.npz
+pre

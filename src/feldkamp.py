@@ -20,7 +20,6 @@ class Feldkamp:
         self.detector_x = self.detector_rows*self.detector_pixel_size
         self.detector_y = self.detector_cols*self.detector_pixel_size
         self.angles = np.linspace(angles[0], angles[1], num_projections)
-        #self.angles = np.linspace(-15, 15, 11)
         self.num_projections = len(self.angles)
         self.obj_in_pos = [-128, 128, -25] 
         self.det_in_pos = [-256, 128, -25]
@@ -38,35 +37,32 @@ class Feldkamp:
 
     def geom_set_up(self, SAD, angles, num_projections, vol_dim, det_in_pos, obj_in_pos,
                 detector_pixel_size, detector_rows, detector_cols, detector_x, detector_y):
-        # Inizializziamo la matrice vectors
         vectors = np.ones((num_projections, 12))
         
-        # Coordinate della sorgente al variare degli angoli (sorgente ruota attorno ad asse y)
-        rad_angles = angles * (np.pi/180)                        # angoli in radianti
+        # src cordinates
+        rad_angles = angles * (np.pi/180)                        # rad
         vectors[:, 0] = SAD * np.sin(rad_angles)                 # Xs
         vectors[:, 1] = -vol_dim[1]/2                           # Ys
         vectors[:, 2] = SAD * np.cos(rad_angles) + vol_dim[0]/2  # Zs
         
-        # Visualizzazione compatta delle coordinate con tqdm
         print("Coordinate della sorgente ottenute:")
         print(f"{'x':>10} {'y':>10} {'z':>10}")
         for row in vectors[:, :3]:
             print(f"{row[0]:>10.2f} {row[1]:>10.2f} {row[2]:>10.2f}")
         
-        # Coordinate del centro del detector (rispetto al sistema di riferimento di ASTRA)
+        # detector cordinates (respect to ASTRA)
         Xc = 0                                                   # detector_x/2                                                    
         Yc = 0                                                   # detector_y/2
-        Zc = det_in_pos[2]-(vol_dim[2]/2+obj_in_pos[2])          # Posizione Z del detector                         
+        Zc = det_in_pos[2]-(vol_dim[2]/2+obj_in_pos[2])          # Pos Z of detector                         
         
         vectors[:, 3] = Xc    # Xc
         vectors[:, 4] = Yc    # Yc
         vectors[:, 5] = Zc    # Zc
         
-        # Costruiamo i versori ortonormali u e v
         u = np.array([detector_pixel_size, 0, 0])/detector_pixel_size  
         v = np.array([0, detector_pixel_size, 0])/detector_pixel_size
         
-        # Coordinate dei versori u e v
+        # Coordinates u e v
         vectors[:, 6] = u[0]    # Xu
         vectors[:, 7] = u[1]    # Yu
         vectors[:, 8] = u[2]    # Zu
@@ -74,16 +70,15 @@ class Feldkamp:
         vectors[:, 10] = v[1]   # Yv
         vectors[:, 11] = v[2]   # Zv
         
-        # Creiamo la geometria del volume e della proiezione
-        vol_geom = astra.create_vol_geom(vol_dim[1], vol_dim[2], vol_dim[0])  # righe sono le Y, colonne sono le X, Z sono le slices
-        proj_geom = astra.create_proj_geom('cone_vec', detector_rows, detector_cols, vectors)  # geometria a cono
+        # volume and projection geometries
+        vol_geom = astra.create_vol_geom(vol_dim[1], vol_dim[2], vol_dim[0])  # row Y, cols X, slices Z
+        proj_geom = astra.create_proj_geom('cone_vec', detector_rows, detector_cols, vectors)  # cone geometry
         
         return [vol_geom, proj_geom]
 
     def forward_projection(self, vol_id, proj_id, noise_level=0.00, visualize=False):
-        # Forward projection con barra di progresso
         with tqdm(total=3, desc="Forward Projection", leave=False) as pbar:
-            # Inizializzazione parametri FP
+            # Init FP params
             cfg1 = astra.creators.astra_dict(self.fp_alg)
             cfg1['ProjectionDataId'] = proj_id
             cfg1['VolumeDataId'] = vol_id
@@ -91,15 +86,14 @@ class Feldkamp:
             pbar.update(1)
             pbar.set_description("Esecuzione proiezione")
             
-            # Esecuzione dell'algoritmo
+            # FP execution
             astra.algorithm.run(alg1_id)
             pbar.update(1)
             
-            # Otteniamo il risultato come un array
             proj_volume_clean = astra.data3d.get(proj_id)
             pbar.set_description(f"Proiezioni: {np.shape(proj_volume_clean)}")
             
-            # Aggiunta di rumore alle proiezioni
+            # Optional noise
             if noise_level > 0:
                 np.random.seed(10)
                 e = np.random.normal(0, 1, np.shape(proj_volume_clean))
@@ -112,10 +106,9 @@ class Feldkamp:
                 proj_volume = proj_volume_clean
             pbar.update(1)
             
-            # Pulizia
+            # Delete memory
             astra.algorithm.delete(alg1_id)
 
-            # Rappresentiamo alcune proiezioni
             if visualize:
                 index = [0, 5, 7, 10]
                 fig = plt.figure(figsize=(20, 5))
@@ -127,9 +120,8 @@ class Feldkamp:
             return proj_volume
 
     def feldkamp_reconstruction(self, proj_id, vol_id, visualize=False):
-        # Ricostruzione FDK con barra di progresso
         with tqdm(total=3, desc="FDK Reconstruction", leave=False) as pbar:
-            # Inizializzazione parametri FDK
+            # Init FDK params
             reconstruction_id_FDK = astra.data3d.create('-vol', self.vol_geom)
             cfg2 = astra.creators.astra_dict(self.fdk_alg)
             cfg2['ProjectionDataId'] = proj_id
@@ -137,7 +129,7 @@ class Feldkamp:
             alg2_id = astra.algorithm.create(cfg2)
             pbar.update(1)
             
-            # Esecuzione dell'algoritmo con misurazione del tempo
+            # FDK execution
             pbar.set_description("Esecuzione FDK")
             tstart_FDK = time.time()
             astra.algorithm.run(alg2_id)
@@ -145,16 +137,15 @@ class Feldkamp:
             execution_time = tfinish_FDK - tstart_FDK
             pbar.update(1)
             
-            # Otteniamo il risultato come un array
             reconstruction_FDK = astra.data3d.get(reconstruction_id_FDK)
             pbar.set_description(f"Volume: {np.shape(reconstruction_FDK)}, tempo: {execution_time:.2f}s")
             pbar.update(1)
             
-            # Visualizzazione opzionale
+            # Visualize
             if visualize:
                 self.visualize_slices(reconstruction_FDK)
             
-            # Pulizia
+            # Delete memory
             astra.algorithm.delete(alg2_id)
             astra.data3d.delete(reconstruction_id_FDK)
             
@@ -192,13 +183,12 @@ class Feldkamp:
         
         with tqdm(total=total_iterations, desc="Elaborazione volumi", unit="volume") as pbar:
             for volume in volumes_list:
-                # Caricamento phantom
+                # phantom
                 phantom = tifffile.imread(os.path.join(self.path, volume))
                 
                 for noise_level in noise_levels:
                     pbar.set_description(f"Volume: {volume}, Rumore: {noise_level}")
                     
-                    # Creazione degli ID ASTRA
                     vol_id = astra.data3d.create('-vol', self.vol_geom, phantom)
                     proj_id = astra.data3d.create('-proj3d', self.proj_geom)
                     
@@ -206,10 +196,10 @@ class Feldkamp:
                     proj_volume = self.forward_projection(vol_id=vol_id, proj_id=proj_id, noise_level=noise_level, visualize=visualize)
                     astra.data3d.store(proj_id, proj_volume)
 
-                    # Ricostruzione FDK
+                    # FDK reconstruction
                     reconstruction_FDK = self.feldkamp_reconstruction(proj_id=proj_id, vol_id=vol_id, visualize=visualize)
                     
-                    # Salvataggio dei dati
+                    # Save
                     self.volumes.append(reconstruction_FDK)
                     self.metadata.append({
                         'volume_name': volume,
@@ -217,18 +207,17 @@ class Feldkamp:
                         'angles': self.angles,
                     })
                     
-                    # Pulizia memoria
+                    # Delete memory
                     astra.data3d.delete(vol_id)
                     astra.data3d.delete(proj_id)
                     
-                    # Aggiornamento barra di progresso
                     pbar.update(1)
         
-        # Salvataggio dei risultati
+        # Save results
         if self.volumes:
             self.save_reconstructions('dataset/reconstruction/reconstructions.npz')
             
-            # Statistiche finali
+            # Stats
             print(f"\nRiepilogo elaborazione:")
             print(f"- Volumi elaborati: {len(volumes_list)}")
             print(f"- Livelli di rumore: {noise_levels}")
